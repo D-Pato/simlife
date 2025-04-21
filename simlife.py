@@ -1,4 +1,5 @@
 
+
 # Simulador corregido con claves únicas - DON’T PATO
 
 import streamlit as st
@@ -120,7 +121,7 @@ if estado["avatar_creado"]:
             elif decision2 == "Ahorrar en un fondo seguro":
                 estado["patrimonio"] += 200000
                 estado["ingresos_pasivos"] += 15000
-            elif decision2 == "Comprar un pequeño activo (ej: notebook, bicicleta)"):
+            elif decision2 == "Comprar un pequeño activo (ej: notebook, bicicleta)":
                 estado["activos"].append("Notebook/Bicicleta")
                 estado["patrimonio"] -= 400000
                 estado["felicidad"] += 8
@@ -153,4 +154,3 @@ if estado["avatar_creado"]:
         if st.button("🔁 Reiniciar simulador", key="btn_reiniciar"):
             del st.session_state.estado
             st.rerun()
-
