@@ -1,7 +1,9 @@
-# Simulador de Vida Real Financiera - Versión Avanzada Estilo Juego
+# Simulador de Vida Real Financiera - Versión Avanzada Estilo Juego con Propiedades
 
 import streamlit as st
 import random
+import pandas as pd
+import matplotlib.pyplot as plt
 
 # Inicializar estado si no existe
 if "estado" not in st.session_state:
@@ -16,12 +18,13 @@ if "estado" not in st.session_state:
         "edad": 18,
         "activos": [],
         "trayectoria": "",
-        "situacion": ""
+        "situacion": "",
+        "historial": []
     }
 
-st.title("🧠 Simulador de Vida Real Financiera - DON’T PATO")
-
 estado = st.session_state.estado
+
+st.title("🧠 Simulador de Vida Real Financiera - DON’T PATO")
 
 if not estado["avatar_creado"]:
     st.subheader("🧍‍♂️ Crea tu personaje")
@@ -62,96 +65,50 @@ if estado["avatar_creado"]:
     st.write(f"🌆 Ciudad: {estado['ciudad']} | 🧭 Estilo de vida: {estado['estilo_vida']} | 🎯 Trayectoria: {estado['trayectoria']}")
     st.info(f"📌 {estado['situacion']}")
 
-    # Primera decisión según trayectoria
-    if "decision1" not in estado:
-        st.header("🔀 Primera gran decisión")
-        if estado['trayectoria'] == "Estudiante universitario":
-            opciones = ["Buscar trabajo part-time", "Pedir un crédito estudiantil", "Enfocarte solo en estudiar"]
-        elif estado['trayectoria'] == "Trabajador asalariado":
-            opciones = ["Postular a un ascenso", "Iniciar un emprendimiento paralelo", "Seguir en el mismo puesto"]
-        elif estado['trayectoria'] == "Emprendedor":
-            opciones = ["Invertir más en el negocio", "Buscar socio inversor", "Diversificar con un nuevo producto"]
-        else:  # Freelancer
-            opciones = ["Tomar más clientes", "Subir tus tarifas", "Aprender una nueva habilidad"]
+    # Mostrar propiedades disponibles
+    st.header("🏠 Compra de Propiedades")
+    propiedades = {
+        "Departamento en Santiago": {"precio": 20000000, "ingreso": 250000},
+        "Auto de trabajo": {"precio": 6000000, "ingreso": 0},
+        "Mini Market": {"precio": 10000000, "ingreso": 400000}
+    }
 
-        decision1 = st.radio("¿Qué eliges?", opciones, key="decision_1_radio")
-
-        if st.button("Confirmar decisión 1", key="confirmar_decision_1"):
-            efecto = random.choice(["positivo", "negativo"])
-            if efecto == "positivo":
-                estado["patrimonio"] += 500000
-                estado["felicidad"] += 10
-                estado["estres"] += 5
-            else:
-                estado["patrimonio"] -= 300000
-                estado["felicidad"] -= 5
-                estado["estres"] += 15
-            evento1 = random.choice([
-                ("Recibiste una beca sorpresa de $300.000", 300000, -5),
-                ("Se rompió tu notebook y tuviste que repararlo", -200000, 10),
-                ("Ganaste un concurso de innovación y recibiste $500.000", 500000, -3)
-            ])
-            estado["patrimonio"] += evento1[1]
-            estado["estres"] += evento1[2]
-            estado["evento1"] = evento1[0]
-            estado["decision1"] = decision1
-            st.rerun()
-
-    elif "decision2" not in estado:
-        st.header("🔁 Segunda decisión")
-        st.write(f"📌 Decisión anterior: {estado['decision1']}")
-        st.warning(f"⚠️ Evento aleatorio: {estado['evento1']}")
-
-        decision2 = st.radio("¿Cómo manejas tus finanzas ahora?", [
-            "Invertir en criptomonedas",
-            "Ahorrar en un fondo seguro",
-            "Comprar un pequeño activo (ej: notebook, bicicleta)"
-        ], key="decision_2_radio")
-
-        if st.button("Confirmar decisión 2", key="confirmar_decision_2"):
-            if decision2 == "Invertir en criptomonedas":
-                resultado = random.choice(["ganancia", "pérdida"])
-                if resultado == "ganancia":
-                    estado["patrimonio"] += 800000
-                    estado["ingresos_pasivos"] += 50000
+    for nombre_prop, datos in propiedades.items():
+        if nombre_prop not in estado['activos']:
+            if st.button(f"Comprar {nombre_prop} - ${datos['precio']:,}"):
+                if estado["patrimonio"] >= datos['precio']:
+                    estado["patrimonio"] -= datos['precio']
+                    estado["ingresos_pasivos"] += datos['ingreso']
+                    estado["activos"].append(nombre_prop)
+                    st.success(f"¡Compraste {nombre_prop}!")
                 else:
-                    estado["patrimonio"] -= 600000
-                    estado["estres"] += 10
-            elif decision2 == "Ahorrar en un fondo seguro":
-                estado["patrimonio"] += 200000
-                estado["ingresos_pasivos"] += 15000
-            elif decision2 == "Comprar un pequeño activo (ej: notebook, bicicleta)":
-                estado["activos"].append("Notebook/Bicicleta")
-                estado["patrimonio"] -= 400000
-                estado["felicidad"] += 8
+                    st.error("No tienes suficiente patrimonio para comprar esta propiedad.")
 
-            evento2 = random.choice([
-                ("Te ofrecieron un trabajo freelance extra por $250.000", 250000, -2),
-                ("Te multaron por no pagar el TAG: -$150.000", -150000, 5),
-                ("Subió el arriendo y pagas $100.000 más al mes", -300000, 8)
-            ])
-            estado["patrimonio"] += evento2[1]
-            estado["estres"] += evento2[2]
-            estado["evento2"] = evento2[0]
-            estado["decision2"] = decision2
-            st.rerun()
+    # Guardar historial para gráficas
+    estado["historial"].append({
+        "Patrimonio": estado["patrimonio"],
+        "Felicidad": estado["felicidad"],
+        "Estrés": estado["estres"]
+    })
 
-    else:
-        st.header("🏁 Resultados Finales")
-        st.write(f"🎓 Trayectoria: {estado['trayectoria']}")
-        st.write(f"🎒 Activos comprados: {', '.join(estado['activos']) if estado['activos'] else 'Ninguno'}")
-        st.write(f"⚠️ Evento 1: {estado['evento1']}")
-        st.write(f"⚠️ Evento 2: {estado['evento2']}")
+    # Mostrar métricas
+    st.header("📊 Estado Actual")
+    st.metric("💰 Patrimonio", f"${estado['patrimonio']:,.0f}")
+    st.metric("😊 Felicidad", f"{estado['felicidad']}%")
+    st.metric("😰 Estrés", f"{estado['estres']}%")
+    st.metric("🏦 Ahorros", f"${estado['ahorros']:,.0f}")
+    st.metric("📈 Ingresos Pasivos", f"${estado['ingresos_pasivos']:,.0f}")
 
-        st.metric("💰 Patrimonio", f"${estado['patrimonio']:,.0f}")
-        st.metric("😊 Felicidad", f"{estado['felicidad']}%")
-        st.metric("😰 Estrés", f"{estado['estres']}%")
-        st.metric("🏦 Ahorros", f"${estado['ahorros']:,.0f}")
-        st.metric("📈 Ingresos Pasivos", f"${estado['ingresos_pasivos']:,.0f}")
+    st.write(f"🎒 Activos actuales: {', '.join(estado['activos']) if estado['activos'] else 'Ninguno'}")
 
-        st.info("🦆 Consejo de DON’T PATO: Las decisiones inteligentes no siempre son fáciles, pero siempre enseñan algo. ¡Sigue jugando la vida con estrategia!")
+    # Mostrar gráficas de evolución
+    if len(estado["historial"]) > 1:
+        df_hist = pd.DataFrame(estado["historial"])
+        st.subheader("📈 Evolución del Simulador")
+        fig, ax = plt.subplots()
+        df_hist.plot(ax=ax)
+        st.pyplot(fig)
 
-        if st.button("🔁 Reiniciar simulador", key="reiniciar"):
-            del st.session_state.estado
-            st.rerun()
-
+    if st.button("🔁 Reiniciar simulador", key="reiniciar"):
+        del st.session_state.estado
+        st.rerun()
