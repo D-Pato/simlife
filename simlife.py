@@ -154,3 +154,4 @@ if estado["avatar_creado"]:
         if st.button("🔁 Reiniciar simulador", key="reiniciar"):
             del st.session_state.estado
             st.rerun()
+
